@@ -25,51 +25,5 @@ public class PlayerInteractEntityListener implements Listener {
 
         player.openInventory(guardMob.getInventory());
 
-        /*
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Chunk chunk = ((Entity) craftEntity).getLocation().getChunk();
-
-                final String[] string = new String[1];
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        string[0] = chunk.isLoaded() ? "Chunk is Loaded 1" : "Chunk is Not Loaded 1";
-                        System.out.println(string[0]);
-
-                        string[0] = chunk.isEntitiesLoaded() ? "Entities Are Loaded 1" : "Entities Are Not Loaded 1";
-                        System.out.println(string[0]);
-
-                        chunk.load();
-                        string[0] = chunk.isLoaded() ? "Chunk is Loaded 2" : "Chunk is Not Loaded 2";
-                        System.out.println(string[0]);
-
-                        string[0] = chunk.isEntitiesLoaded() ? "Entities Are Loaded 2" : "Entities Are Not Loaded 2";
-                        System.out.println(string[0]);
-
-                        chunk.getEntities();
-                        string[0] = chunk.isLoaded() ? "Chunk is Loaded 3" : "Chunk is Not Loaded 3";
-                        System.out.println(string[0]);
-
-                        string[0] = chunk.isEntitiesLoaded() ? "Entities Are Loaded 3" : "Entities Are Not Loaded 3";
-                        System.out.println(string[0]);
-
-                        System.out.println(entity.getUniqueId());
-                    }
-                }.runTaskLater(GuardMobs.getInstance(), 400);
-                System.out.println(entity.getUniqueId());
-
-                string[0] = chunk.isLoaded() ? "Chunk is Loaded 0" : "Chunk is Not Loaded 0";
-                System.out.println(string[0]);
-
-                string[0] = chunk.isEntitiesLoaded() ? "Entities Are Loaded 0" : "Entities Are Not Loaded 0";
-                System.out.println(string[0]);
-
-
-            }
-        }.runTaskLater(GuardMobs.getInstance(), 10);
-
-         */
     }
 }
