@@ -1,0 +1,12 @@
+name: GuardMobs
+version: '${project.version}'
+main: me.itsnutt.guardmobs.GuardMobs
+api-version: 1.19
+authors: [ ItsNutt ]
+description: Guard Mobs :)
+load: POSTWORLD
+depend: [Vault, WorldEdit, WorldGuard]
+softdepend: [LoadLast]
+commands:
+  getSpawnerItem:
+    usage: /<command> <args>
