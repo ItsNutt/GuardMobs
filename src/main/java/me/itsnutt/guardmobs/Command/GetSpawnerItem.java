@@ -1,4 +1,4 @@
-package me.itsnutt.guardmobs.Commands;
+package me.itsnutt.guardmobs.Command;
 
 import me.itsnutt.guardmobs.Mobs.GuardMob;
 import me.itsnutt.guardmobs.Util.Util;

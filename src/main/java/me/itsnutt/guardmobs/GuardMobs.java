@@ -1,6 +1,7 @@
 package me.itsnutt.guardmobs;
 
-import me.itsnutt.guardmobs.Commands.GetSpawnerItem;
+import me.itsnutt.guardmobs.Command.GetSpawnerItem;
+import me.itsnutt.guardmobs.Command.GetSpawnerItemTabCompleter;
 import me.itsnutt.guardmobs.Data.PriceConfiguration;
 import me.itsnutt.guardmobs.Listeners.ChunkLoadListener;
 import me.itsnutt.guardmobs.Listeners.InventoryClickListener;
@@ -48,6 +49,7 @@ public final class GuardMobs extends JavaPlugin {
         // Plugin startup logic
         instance = this;
         getCommand("getSpawnerItem").setExecutor(new GetSpawnerItem());
+        getCommand("getSpawnerItem").setTabCompleter(new GetSpawnerItemTabCompleter());
         getServer().getPluginManager().registerEvents(new ItemListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractEntityListener(), this);
         getServer().getPluginManager().registerEvents(new ChunkLoadListener(), this);
