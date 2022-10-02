@@ -3,7 +3,6 @@ package me.itsnutt.guardmobs.Listeners;
 import me.itsnutt.guardmobs.GuardMobs;
 import me.itsnutt.guardmobs.Mobs.GuardMob;
 import me.itsnutt.guardmobs.Util.Util;
-import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Bukkit;
@@ -49,7 +48,7 @@ public class InventoryClickListener implements Listener {
             if (economy.getBalance(offlinePlayer) < price) return;
 
             economy.withdrawPlayer(offlinePlayer, price);
-            player.sendMessage(ChatColor.DARK_RED + "-" + price + " " + economy.currencyNamePlural());
+            player.sendMessage(ChatColor.DARK_RED + "-$" + price);
             guardMob.getEntity().remove(Entity.RemovalReason.DISCARDED);
             Util.spawnGuardMob(guardMob.getEntityType(), guardMob.getSpawnLocation(), guardMob.getRegionID(), guardMob.getTier()+1);
             player.sendMessage(ChatColor.DARK_GREEN + guardMob.getEntityType().name() + " Upgraded");
