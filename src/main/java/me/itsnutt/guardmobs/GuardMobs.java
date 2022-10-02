@@ -1,11 +1,13 @@
 package me.itsnutt.guardmobs;
 
 import me.itsnutt.guardmobs.Commands.GetSpawnerItem;
+import me.itsnutt.guardmobs.Data.PriceConfiguration;
 import me.itsnutt.guardmobs.Listeners.ChunkLoadListener;
 import me.itsnutt.guardmobs.Listeners.InventoryClickListener;
 import me.itsnutt.guardmobs.Listeners.ItemListener;
 import me.itsnutt.guardmobs.Listeners.PlayerInteractEntityListener;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,11 +23,25 @@ public final class GuardMobs extends JavaPlugin {
 
     private static Economy econ = null;
 
+    private final FileConfiguration config = this.getConfig();
+
     public static Economy getEconomy(){
         return econ;
     }
 
     private final Logger log = getLogger();
+
+    private static boolean useConfig;
+
+    public static boolean useConfig(){
+        return useConfig;
+    }
+
+    private static PriceConfiguration priceConfig;
+
+    public static PriceConfiguration getPriceConfig(){
+        return priceConfig;
+    }
 
     @Override
     public void onEnable() {
@@ -46,6 +62,14 @@ public final class GuardMobs extends JavaPlugin {
             }
             getServer().getPluginManager().disablePlugin(this);
             return;
+        }
+
+        priceConfig = new PriceConfiguration(config);
+        saveConfig();
+
+        useConfig = config.getBoolean("useConfig");
+        if (useConfig()){
+            priceConfig.initPrices();
         }
     }
 

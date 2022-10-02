@@ -81,7 +81,7 @@ public class Bear extends PolarBear implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Bear Friend :) " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, String.valueOf(this.getCustomName()));
+        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Bear Menu");
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();

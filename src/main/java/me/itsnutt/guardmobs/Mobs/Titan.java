@@ -19,6 +19,7 @@ import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
@@ -81,7 +82,7 @@ public class Titan extends IronGolem implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Titan " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, String.valueOf(this.getCustomName()));
+        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Titan Menu");
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();

@@ -29,6 +29,7 @@ import net.minecraft.world.item.alchemy.PotionUtils;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -105,7 +106,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Mage " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, String.valueOf(this.getCustomName()));
+        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Mage Menu");
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();

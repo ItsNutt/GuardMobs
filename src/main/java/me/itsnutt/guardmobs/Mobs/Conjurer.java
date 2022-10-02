@@ -94,7 +94,7 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Conjurer " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, String.valueOf(this.getCustomName()));
+        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Conjurer Menu");
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();

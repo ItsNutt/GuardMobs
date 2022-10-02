@@ -20,6 +20,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Skeleton;
 import net.minecraft.world.entity.player.Player;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -94,7 +95,7 @@ public class Swordsman extends Skeleton implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Swordsman " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, String.valueOf(this.getCustomName()));
+        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Swordsman Menu");
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();

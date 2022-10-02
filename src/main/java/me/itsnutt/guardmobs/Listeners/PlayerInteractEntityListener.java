@@ -1,6 +1,7 @@
 package me.itsnutt.guardmobs.Listeners;
 
 import me.itsnutt.guardmobs.Mobs.GuardMob;
+import me.itsnutt.guardmobs.Util.Util;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,6 +21,8 @@ public class PlayerInteractEntityListener implements Listener {
         if (event.getHand() == EquipmentSlot.OFF_HAND) {
             return;
         }
+
+        if (Util.isSpawnerItem(player.getInventory().getItemInMainHand()))event.setCancelled(true);
 
         if (!(craftEntity.getHandle() instanceof GuardMob guardMob))return;
 

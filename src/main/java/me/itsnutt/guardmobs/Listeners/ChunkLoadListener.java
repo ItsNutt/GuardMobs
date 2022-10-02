@@ -32,7 +32,6 @@ public class ChunkLoadListener implements Listener {
             }
             craftEntity.getHandle().remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED);
             profile.spawnGuardMob();
-            System.out.println("Spawned " + profile.getType().name() + " at " + profile.getSpawnLocation().getX() + " " + profile.getSpawnLocation().getZ());
         }
     }
 }

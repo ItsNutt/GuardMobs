@@ -48,6 +48,14 @@ public class Util {
         add(GuardMob.CustomEntityType.CONJURER);
     }};
 
+    public static List<GuardMob.CustomEntityType> getAllGuardMobTypesEnum(){
+        return guardMobTypesEnum;
+    }
+
+    public static List<String> getAllGuardMobTypesString(){
+        return guardMobTypesString;
+    }
+
     public static RegionManager getRegionManager(Level level){
         return WorldGuard.getInstance().getPlatform().getRegionContainer().get(WorldGuard.getInstance().getPlatform().getMatcher().getWorldByName(level.getWorld().getName()));
     }
@@ -75,6 +83,7 @@ public class Util {
 
     //For Use ONLY WHEN CHECKING NBT OF GUARD MOB SPAWNER ITEMS
     public static boolean isGuardMobString(String string){
+        if (string == null)return false;
         String[] raw = string.split(":");
 
         return guardMobTypesString.contains(raw[0]);
@@ -167,13 +176,14 @@ public class Util {
         goldMeta.setDisplayName(ChatColor.GOLD + "Upgrade");
 
         List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GREEN + "$1000");
+        String price = GuardMobs.useConfig() ? String.valueOf(GuardMobs.getPriceConfig().getUpgradePrice(guardMob.getEntityType(), guardMob.getTier()+1)) : "1000";
+        lore.add("$" + price);
         goldMeta.setLore(lore);
         gold.setItemMeta(goldMeta);
 
         net.minecraft.world.item.ItemStack nmsGold = CraftItemStack.asNMSCopy(gold);
         CompoundTag compoundTag = (nmsGold.hasTag() ? nmsGold.getTag() : new CompoundTag());
-        compoundTag.putString("upgradePrice", "1000");
+        compoundTag.putString("upgradePrice", price);
         nmsGold.setTag(compoundTag);
 
         gold = CraftItemStack.asBukkitCopy(nmsGold);
@@ -190,6 +200,12 @@ public class Util {
         if (!nmsItem.hasTag())return 0d;
 
         return Double.valueOf(nmsItem.getTag().getString("upgradePrice"));
+    }
+
+    public static boolean isSpawnerItem(ItemStack itemStack){
+        net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
+        if (!nmsItem.hasTag())return false;
+        return isGuardMobString(nmsItem.getTag().getString("guardMob"));
     }
 
     public static NamespacedKey getRegionKey(){
