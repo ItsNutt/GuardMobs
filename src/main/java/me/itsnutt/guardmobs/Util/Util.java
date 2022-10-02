@@ -208,6 +208,18 @@ public class Util {
         return isGuardMobString(nmsItem.getTag().getString("guardMob"));
     }
 
+    public static boolean isAlly(Entity entity, String regionID){
+        if (entity instanceof GuardMob guardMob){
+            if (guardMob.getRegionID().equalsIgnoreCase(regionID)){
+                return true;
+            }
+        }
+        if (entity instanceof Player player){
+            return isRegionMember(player, regionID);
+        }
+        return false;
+    }
+
     public static NamespacedKey getRegionKey(){
         return regionKey;
     }

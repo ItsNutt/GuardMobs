@@ -113,7 +113,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
         this.targetSelector.removeAllGoals();
 
         this.goalSelector.addGoal( 1, new FloatGoal(this));
-        this.goalSelector.addGoal( 2, new RangedAttackGoal(this, 1 + ((double) tier/10), (int) Math.floor(20/(double)tier+1), 10)); //var3 = attack delay
+        this.goalSelector.addGoal( 2, new RangedAttackGoal(this, 1 + ((double) tier/10), (int) Math.ceil(30/(double)tier+1), 10)); //var3 = attack delay
         this.goalSelector.addGoal( 4, new CustomMoveToSpawnGoal(this, 1,0));
         this.goalSelector.addGoal( 5, new LookAtPlayerGoal(this, LivingEntity.class, 8));
         this.goalSelector.addGoal( 6, new RandomLookAroundGoal(this));
@@ -156,9 +156,45 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
                 }
             }
 
+            /*
+            if (entityliving instanceof Player player){
+                if (Util.isRegionMember((org.bukkit.entity.Player) player.getBukkitEntity(), this.regionID)){
+                    if (player.getHealth() >= player.getMaxHealth()){
+                        this.setTarget(null);
+                        return;
+                    }
+                    potionregistry = Potions.REGENERATION;
+                    if (tier == 5){
+                        potionregistry = Potions.STRONG_REGENERATION;
+                    }
+                }
+            }
+
+            if (entityliving instanceof GuardMob){
+                if (Util.hasSameRegionID(entityliving.getBukkitEntity(), this.regionID)){
+                    if (entityliving.getHealth() >= entityliving.getMaxHealth()){
+                        this.setTarget(null);
+                        return;
+                    }
+                    if (entityliving.getMobType() == MobType.UNDEAD){
+                        potionregistry = Potions.HARMING;
+                        if (tier == 5){
+                            potionregistry = Potions.STRONG_HARMING;
+                        }
+                    } else {
+                        potionregistry = Potions.HEALING;
+                        if (tier == 5){
+                            potionregistry = Potions.STRONG_HEALING;
+                        }
+                    }
+                }
+            }
+
+             */
+
             ThrownPotion entitypotion = new ThrownPotion(this.level, this);
             entitypotion.setItem(PotionUtils.setPotion(new net.minecraft.world.item.ItemStack(Items.SPLASH_POTION), potionregistry));
-            entitypotion.setXRot(entitypotion.getXRot() - -20.0F);
+            entitypotion.setXRot(entitypotion.getXRot() - 20.0F);
             entitypotion.shoot(d0, d1 + d3 * 0.2D, d2, 0.75F, 8.0F);
             if (!this.isSilent()) {
                 this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.WITCH_THROW, this.getSoundSource(), 1.0F, 0.8F + this.random.nextFloat() * 0.4F);
@@ -213,10 +249,23 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
             return;
         }
 
-        HashSet<Entity> potentialTargets = new HashSet<>(this.getLocation().getWorld().getNearbyEntities((this).getLocation(), 16 + tier, 8, 16 + tier));
-        potentialTargets.removeIf(entity -> !(((CraftEntity) entity).getHandle() instanceof Monster) && !(((CraftEntity) entity).getHandle() instanceof Player));
+        HashSet<Entity> potentialTargets;
+        if (this.getLocation().getWorld() != null){
+            potentialTargets = new HashSet<>(this.getLocation().getWorld().getNearbyEntities((this).getLocation(), 16 + tier, 8, 16 + tier));
+            potentialTargets.removeIf(entity -> !(((CraftEntity) entity).getHandle() instanceof Monster) && !(((CraftEntity) entity).getHandle() instanceof Player));
+        }else {return;}
 
         Entity target = this.getTarget().getBukkitEntity();
+
+        if (this.getLastHurtByMob() != null){
+            if (!Util.isAlly(this.getLastHurtByMob().getBukkitEntity(), this.regionID)){
+                if (target.getLocation().distance(this.getLocation()) > this.getLastHurtByMob().getBukkitEntity().getLocation().distance(this.getLocation())) {
+                    this.setTarget(this.getLastHurtByMob(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                    return;
+                }
+            }
+        }
+
         for (Entity entity : potentialTargets){
             net.minecraft.world.entity.Entity potentialTarget = ((CraftEntity) entity).getHandle();
             if (potentialTarget instanceof Monster monster && targetHostileMobs){
@@ -233,6 +282,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
             }
             if (entity.getLocation().distance(this.getLocation()) < target.getLocation().distance(this.getLocation())){
                 this.setTarget((LivingEntity) potentialTarget , EntityTargetEvent.TargetReason.CUSTOM, false);
+                return;
             }
         }
     }

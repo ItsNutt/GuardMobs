@@ -10,6 +10,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
@@ -144,10 +146,20 @@ public class Bear extends PolarBear implements GuardMob, InventoryHolder {
             return;
         }
 
-        HashSet<Entity> potentialTargets = new HashSet<>(this.getLocation().getWorld().getNearbyEntities((this).getLocation(), 16 + tier, 8, 16 + tier));
-        potentialTargets.removeIf(entity -> !(((CraftEntity) entity).getHandle() instanceof Monster) && !(((CraftEntity) entity).getHandle() instanceof Player));
-
+        HashSet<Entity> potentialTargets;
+        if (this.getLocation().getWorld() != null){
+            potentialTargets = new HashSet<>(this.getLocation().getWorld().getNearbyEntities((this).getLocation(), 16 + tier, 8, 16 + tier));
+            potentialTargets.removeIf(entity -> !(((CraftEntity) entity).getHandle() instanceof Monster) && !(((CraftEntity) entity).getHandle() instanceof Player));
+        }else {return;}
         Entity target = this.getTarget().getBukkitEntity();
+        if (this.getLastHurtByMob() != null){
+            if (!Util.isAlly(this.getLastHurtByMob().getBukkitEntity(), this.regionID)){
+                if (target.getLocation().distance(this.getLocation()) > this.getLastHurtByMob().getBukkitEntity().getLocation().distance(this.getLocation())) {
+                    this.setTarget(this.getLastHurtByMob(), EntityTargetEvent.TargetReason.CUSTOM, false);
+                    return;
+                }
+            }
+        }
         for (Entity entity : potentialTargets){
             net.minecraft.world.entity.Entity potentialTarget = ((CraftEntity) entity).getHandle();
             if (potentialTarget instanceof Monster monster && targetHostileMobs){
@@ -164,6 +176,7 @@ public class Bear extends PolarBear implements GuardMob, InventoryHolder {
             }
             if (entity.getLocation().distance(this.getLocation()) < target.getLocation().distance(this.getLocation())){
                 this.setTarget((LivingEntity) potentialTarget , EntityTargetEvent.TargetReason.CUSTOM, false);
+                return;
             }
         }
     }
@@ -219,5 +232,10 @@ public class Bear extends PolarBear implements GuardMob, InventoryHolder {
     @Override
     public net.minecraft.world.entity.Entity getEntity() {
         return this;
+    }
+
+    @Override
+    public AgeableMob getBreedOffspring(ServerLevel var0, AgeableMob var1) {
+        return null;
     }
 }
