@@ -1,17 +1,14 @@
 package me.itsnutt.guardmobs.Goals;
 
 import me.itsnutt.guardmobs.Mobs.GuardMob;
-import me.itsnutt.guardmobs.Mobs.Mage;
+import me.itsnutt.guardmobs.Mobs.Saint;
 import me.itsnutt.guardmobs.Util.Util;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Monster;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.HashSet;
@@ -28,8 +25,8 @@ public class CustomSaintTargetingGoal extends TargetGoal {
 
     @Override
     public void start(){
-        //Only Use This Goal For Mage
-        if (!(mob instanceof Mage)){
+        //Only Use This Goal For Saint
+        if (!(mob instanceof Saint)){
             return;
         }
         //Remove Dead Targets
@@ -38,30 +35,16 @@ public class CustomSaintTargetingGoal extends TargetGoal {
                 mob.setTarget(null);
             }
         }
+        //Remove Full Health Friendly Targets
         if (mob.getTarget() != null){
-            if (Util.isAlly(mob.getTarget().getBukkitEntity(), ((Mage) mob).getRegionID())){
-                if (mob.getTarget().getHealth() >= mob.getTarget().getMaxHealth()){
+            if (Util.isAlly(mob.getTarget().getBukkitEntity(), ((Saint) mob).getRegionID())){
+                if (Util.hasAllSaintBuffs((org.bukkit.entity.LivingEntity) mob.getTarget().getBukkitEntity(), ((Saint) mob).getTier())){
                     mob.setTarget(null);
                 }
             }
         }
-        //Prioritizing Living Things That Hurt The GuardMob
-        if (mob.getLastHurtByMob() != null){
-            if (mob.getLastHurtByMob().isAlive()){
-                if (mob.getLastHurtByMob().getBukkitEntity() instanceof Player player){
-                    if (Util.isRegionMember(player, ((GuardMob) mob).getRegionID())){
-                        mob.setLastHurtByMob(null);
-                    }
-                }else if (Util.hasSameRegionID(mob.lastHurtByMob.getBukkitEntity(), ((GuardMob) mob).getRegionID())){
-                    mob.setLastHurtByMob(null);
-                }else{
-                    mob.setTarget(mob.lastHurtByMob, EntityTargetEvent.TargetReason.CUSTOM, false);
-                    return;
-                }
-            }else{
-                mob.setLastHurtByMob(null);
-            }
-        }
+
+
         //Getting Potential Targets
         HashSet<Entity> potentialTargets = new HashSet<>(((GuardMob) mob).getLocation().getWorld().getNearbyEntities(((GuardMob) mob)
                 .getLocation(), 16 + ((GuardMob) mob).getTier(), 8, 16 + ((GuardMob)mob).getTier()));
@@ -80,24 +63,33 @@ public class CustomSaintTargetingGoal extends TargetGoal {
             return;
         }
 
-        //Prioritize Targeting Friendly Players (For Healing) Over Non_Friendly Players
         for (Entity entity : potentialTargets){
-            if (entity instanceof Player player){
-                if (Util.isRegionMember(player, ((Mage) mob).getRegionID())){
-                    if (player.getHealth() < player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()){
-                        mob.setTarget(((CraftPlayer) player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+            net.minecraft.world.entity.Entity potentialTarget = ((CraftEntity) entity).getHandle();
+            if (potentialTarget instanceof GuardMob && potentialTarget instanceof LivingEntity livingEntity){
+                if (livingEntity.getMobType() != MobType.UNDEAD) {
+                    if (!Util.hasSaintBuff((org.bukkit.entity.LivingEntity) livingEntity.getBukkitEntity(), 1)){
+                        mob.setTarget(livingEntity, EntityTargetEvent.TargetReason.CUSTOM, false);
+                        return;
+                    }
+                }
+            }
+            if (potentialTarget instanceof net.minecraft.world.entity.player.Player player){
+                if (Util.isRegionMember((org.bukkit.entity.Player) player.getBukkitEntity(), ((Saint) mob).getRegionID())){
+                    if (!Util.hasAllSaintBuffs(player.getBukkitEntity(), ((Saint) mob).getTier())){
+                        mob.setTarget(player, EntityTargetEvent.TargetReason.CUSTOM, false);
                         return;
                     }
                 }
             }
         }
 
-        //Prioritize Targeting Non-Friendly Players Over Friendly GuardMobs
-        if (((GuardMob) mob).getTargetNonTeamPlayers()){
-            for (Entity entity : potentialTargets){
-                if (entity instanceof Player player){
-                    if (!Util.isRegionMember(player, ((GuardMob) mob).getRegionID())){
-                        mob.setTarget(((CraftPlayer)player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
+        /*
+        //Prioritize Targeting Friendly Players (For Buffing) Over Non_Friendly Players
+        for (Entity entity : potentialTargets){
+            if (entity instanceof Player player){
+                if (Util.isRegionMember(player, ((Saint) mob).getRegionID())){
+                    if (!Util.hasAllSaintBuffs(player, ((Saint) mob).getTier())){
+                        mob.setTarget(((CraftPlayer) player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
                         return;
                     }
                 }
@@ -111,8 +103,11 @@ public class CustomSaintTargetingGoal extends TargetGoal {
         for (Entity entity : potentialTargets){
             if (entity instanceof GuardMob){
                 LivingEntity livingEntity = (LivingEntity) ((CraftEntity) entity).getHandle();
-                if (Util.hasSameRegionID(entity, ((Mage) mob).getRegionID())){
-                    if (livingEntity.getHealth() < livingEntity.getMaxHealth()){
+                if (Util.hasSameRegionID(entity, ((Saint) mob).getRegionID())){
+                    if (livingEntity.getMobType() == MobType.UNDEAD){
+                        continue;
+                    }
+                    if (!Util.hasSaintBuff((org.bukkit.entity.LivingEntity) livingEntity.getBukkitEntity(), 1)){
                         mob.setTarget((LivingEntity) ((CraftEntity) entity).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
                         return;
                     }
@@ -120,10 +115,15 @@ public class CustomSaintTargetingGoal extends TargetGoal {
             }
         }
 
+        potentialTargets.removeIf(entity -> entity instanceof GuardMob);
+
         //Target Hostile Mobs
         if (((GuardMob) mob).getTargetHostileMobs()){
             for (Entity entity : potentialTargets){
                 if (entity instanceof Monster){
+                    if (((LivingEntity)((CraftEntity) entity).getHandle()).getMobType() != MobType.UNDEAD){
+                        continue;
+                    }
                     if (Util.hasSameRegionID(entity, ((GuardMob) mob).getRegionID())){
                         continue;
                     }
@@ -132,6 +132,8 @@ public class CustomSaintTargetingGoal extends TargetGoal {
                 }
             }
         }
+
+         */
 
     }
 }

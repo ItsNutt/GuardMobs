@@ -15,7 +15,8 @@ public interface GuardMob {
         BEAR,
         TITAN,
         MAGE,
-        CONJURER
+        CONJURER,
+        SAINT
     }
 
     boolean getTargetNonTeamPlayers();

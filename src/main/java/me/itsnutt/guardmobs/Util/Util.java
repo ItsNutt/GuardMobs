@@ -12,8 +12,10 @@ import net.minecraft.world.level.Level;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.inventory.Inventory;
@@ -21,6 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +40,7 @@ public class Util {
         add(GuardMob.CustomEntityType.TITAN.name());
         add(GuardMob.CustomEntityType.MAGE.name());
         add(GuardMob.CustomEntityType.CONJURER.name());
+        add(GuardMob.CustomEntityType.SAINT.name());
     }};
 
     private static final List<GuardMob.CustomEntityType> guardMobTypesEnum = new ArrayList<>(){{
@@ -46,6 +50,7 @@ public class Util {
         add(GuardMob.CustomEntityType.TITAN);
         add(GuardMob.CustomEntityType.MAGE);
         add(GuardMob.CustomEntityType.CONJURER);
+        add(GuardMob.CustomEntityType.SAINT);
     }};
 
     public static List<GuardMob.CustomEntityType> getAllGuardMobTypesEnum(){
@@ -69,6 +74,7 @@ public class Util {
             case TITAN -> item = new ItemStack(Material.HUSK_SPAWN_EGG, 1);
             case MAGE -> item = new ItemStack(Material.WITCH_SPAWN_EGG, 1);
             case CONJURER -> item = new ItemStack(Material.EVOKER_SPAWN_EGG, 1);
+            case SAINT -> item = new ItemStack(Material.BLAZE_SPAWN_EGG, 1);
             default -> throw new NullPointerException("Invalid Guard Mob Type!");
         }
         ItemMeta meta = item.getItemMeta();
@@ -118,6 +124,10 @@ public class Util {
             case CONJURER -> {
                 Conjurer conjurer = new Conjurer(spawnLocation, regionID, tier);
                 craftEntity = conjurer.getBukkitEntity();
+            }
+            case SAINT -> {
+                Saint saint = new Saint(spawnLocation, regionID, tier);
+                craftEntity = saint.getBukkitEntity();
             }
             default -> throw new NullPointerException("Invalid Guard Mob Type!");
         }
@@ -218,6 +228,42 @@ public class Util {
             return isRegionMember(player, regionID);
         }
         return false;
+    }
+
+    public static boolean hasAllSaintBuffs(LivingEntity livingEntity, Integer tier){
+        net.minecraft.world.entity.LivingEntity entityLiving = ((CraftLivingEntity) livingEntity).getHandle();
+        boolean fullHealth = entityLiving.getHealth() >= entityLiving.getMaxHealth();
+        boolean regeneration = livingEntity.hasPotionEffect(PotionEffectType.REGENERATION);
+        boolean fireResist = livingEntity.hasPotionEffect(PotionEffectType.FIRE_RESISTANCE);
+        boolean speed = livingEntity.hasPotionEffect(PotionEffectType.SPEED);
+        boolean strength = livingEntity.hasPotionEffect(PotionEffectType.INCREASE_DAMAGE);
+
+        switch (tier){
+            case 1 -> {return fullHealth;}
+            case 2 -> {if (regeneration)return fullHealth;}
+            case 3 -> {if (fireResist && regeneration)return fullHealth;}
+            case 4 -> {if (speed && fireResist && regeneration)return fullHealth;}
+            case 5 -> {if (strength && speed && fireResist && regeneration)return fullHealth;}
+        }
+        return false;
+    }
+
+    public static boolean hasSaintBuff(LivingEntity livingEntity, Integer tier){
+        net.minecraft.world.entity.LivingEntity entityLiving = ((CraftLivingEntity) livingEntity).getHandle();
+        boolean fullHealth = entityLiving.getHealth() >= entityLiving.getMaxHealth();
+        boolean regeneration = livingEntity.hasPotionEffect(PotionEffectType.REGENERATION);
+        boolean fireResist = livingEntity.hasPotionEffect(PotionEffectType.FIRE_RESISTANCE);
+        boolean speed = livingEntity.hasPotionEffect(PotionEffectType.SPEED);
+        boolean strength = livingEntity.hasPotionEffect(PotionEffectType.INCREASE_DAMAGE);
+
+        return switch (tier) {
+            case 1 -> fullHealth;
+            case 2 -> regeneration;
+            case 3 -> fireResist;
+            case 4 -> speed;
+            case 5 -> strength;
+            default -> false;
+        };
     }
 
     public static NamespacedKey getRegionKey(){
