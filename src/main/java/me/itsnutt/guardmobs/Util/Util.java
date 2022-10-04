@@ -219,7 +219,8 @@ public class Util {
     }
 
     public static boolean isAlly(Entity entity, String regionID){
-        if (entity instanceof GuardMob guardMob){
+        net.minecraft.world.entity.Entity nmsEntity = ((CraftEntity) entity).getHandle();
+        if (nmsEntity instanceof GuardMob guardMob){
             if (guardMob.getRegionID().equalsIgnoreCase(regionID)){
                 return true;
             }

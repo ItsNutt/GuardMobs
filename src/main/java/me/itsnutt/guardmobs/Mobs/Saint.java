@@ -130,7 +130,7 @@ public class Saint extends Witch implements GuardMob, InventoryHolder {
                 return;
             }
             if (Util.isAlly(this.getTarget().getBukkitEntity(), regionID) && this.getTarget().getMobType() != MobType.UNDEAD){
-                if (Util.hasAllSaintBuffs((org.bukkit.entity.LivingEntity) this.getBukkitEntity(), tier)){
+                if (Util.hasAllSaintBuffs((org.bukkit.entity.LivingEntity) this.getTarget().getBukkitEntity(), tier)){
                     this.setTarget(null);
                     return;
                 }
@@ -146,18 +146,22 @@ public class Saint extends Witch implements GuardMob, InventoryHolder {
             }
 
             org.bukkit.entity.LivingEntity entityLivingBukkit = (CraftLivingEntity) entityliving.getBukkitEntity();
-            HashSet<Entity> surroundingTarget = new HashSet<>(entityLivingBukkit.getWorld().getNearbyEntities(entityLivingBukkit.getLocation(), 2.5, 2.5, 2.5));
+            HashSet<Entity> surroundingTarget = new HashSet<>(entityLivingBukkit.getWorld().getNearbyEntities(entityLivingBukkit.getLocation(), 2.5, 2, 2.5));
             boolean doAttack = true;
-            
             for (Entity entity : surroundingTarget){
                 if (!(entity instanceof org.bukkit.entity.LivingEntity livingEntityBukkit))continue;
                 LivingEntity livingEntity = ((CraftLivingEntity) livingEntityBukkit).getHandle();
-                if (Util.isAlly(livingEntity.getBukkitEntity(), regionID) && livingEntity.getMobType() == MobType.UNDEAD || 
-                        !Util.isAlly(livingEntity.getBukkitEntity(), regionID) && livingEntity.getMobType() == MobType.UNDEAD){
+                if ((Util.isAlly(livingEntity.getBukkitEntity(), regionID) && livingEntity.getMobType() == MobType.UNDEAD)){
                     doAttack = false;
+                    break;
+                }
+                if ((!Util.isAlly(livingEntity.getBukkitEntity(), regionID) && livingEntity.getMobType() != MobType.UNDEAD)){
+                    doAttack = false;
+                    break;
                 }
                 
             }
+            System.out.println(doAttack);
             
             if (!doAttack){
                 this.setTarget(null);
