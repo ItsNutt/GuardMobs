@@ -7,6 +7,6 @@ Archer and Swordsman, is as unbalanced as it can be, especially at tier 5. There
 GuardMobs will move back to the position in which they spawned, though I plan to make it so they can follow a player when something is toggled. 
 
 Current Dependencies:
--WorldEdit
--WorldGuard
--Vault
+-WorldEdit-
+-WorldGuard-
+-Vault-
