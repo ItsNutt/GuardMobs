@@ -19,6 +19,14 @@ public class CustomMoveToSpawnGoal extends MoveToBlockGoal {
         return true;
     }
 
+    @Override
+    public boolean canUse(){
+        if (!(mob instanceof GuardMob guardMob))return false;
+        if (guardMob.getMovementSetting() != GuardMob.MovementSetting.STAY_AT_SPAWN)return false;
+        super.canUse();
+        return true;
+    }
+
     //ONLY USE FOR GuardMobs!
     @Override
     protected boolean findNearestBlock(){

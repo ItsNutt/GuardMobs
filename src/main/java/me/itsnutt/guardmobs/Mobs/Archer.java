@@ -2,6 +2,7 @@ package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
+import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
 import me.itsnutt.guardmobs.Goals.CustomMoveToSpawnGoal;
 import me.itsnutt.guardmobs.Goals.CustomTargetingGoal;
 import me.itsnutt.guardmobs.Util.Util;
@@ -54,6 +55,8 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
     private final Location spawnLocation;
     private final int tier;
     private Inventory inventory;
+    private MovementSetting movementSetting = MovementSetting.STAY_AT_SPAWN;
+    private org.bukkit.entity.Player following = null;
 
     /*
     * The Concept of 'Tiers' is as follows:
@@ -112,8 +115,9 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
         this.goalSelector.addGoal( 1, new FloatGoal(this));
         this.goalSelector.addGoal( 2, new RangedBowAttackGoal<Skeleton>(this, 1 + ((double) tier/10), (int) Math.floor(20/(double)tier+1), 16)); //var3 = attack delay
         this.goalSelector.addGoal( 4, new CustomMoveToSpawnGoal(this, 1,0));
-        this.goalSelector.addGoal( 5, new LookAtPlayerGoal(this, LivingEntity.class, 8));
-        this.goalSelector.addGoal( 6, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal( 5, new CustomFollowGoal(this, 1.3 + ((double)tier/10)));
+        this.goalSelector.addGoal( 6, new LookAtPlayerGoal(this, LivingEntity.class, 8));
+        this.goalSelector.addGoal( 7, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal( 3, new CustomTargetingGoal(this));
         this.conversionTime = -1;
@@ -283,5 +287,27 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
     @Override
     public net.minecraft.world.entity.Entity getEntity() {
         return this;
+    }
+
+    @Override
+    public MovementSetting getMovementSetting() {
+        return movementSetting;
+    }
+
+    //ALWAYS CALL Util.prepareInventory *AFTER* CALLING THIS METHOD!
+    @Override
+    public void setMovementSetting(MovementSetting movementSetting) {
+        this.movementSetting = movementSetting;
+    }
+
+    @Override
+    public org.bukkit.entity.Player getFollowing() {
+        return following;
+    }
+
+    @Override
+    public void setFollowing(org.bukkit.entity.Player player) {
+        following = player;
+        Util.prepareInventory(this);
     }
 }

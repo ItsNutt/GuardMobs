@@ -185,10 +185,10 @@ public class Util {
         ItemMeta goldMeta = gold.getItemMeta();
         goldMeta.setDisplayName(ChatColor.GOLD + "Upgrade");
 
-        List<String> lore = new ArrayList<>();
+        List<String> goldLore = new ArrayList<>();
         String price = GuardMobs.useConfig() ? String.valueOf(GuardMobs.getPriceConfig().getUpgradePrice(guardMob.getEntityType(), guardMob.getTier()+1)) : "1000";
-        lore.add("$" + price);
-        goldMeta.setLore(lore);
+        goldLore.add("$" + price);
+        goldMeta.setLore(goldLore);
         gold.setItemMeta(goldMeta);
 
         net.minecraft.world.item.ItemStack nmsGold = CraftItemStack.asNMSCopy(gold);
@@ -197,6 +197,35 @@ public class Util {
         nmsGold.setTag(compoundTag);
 
         gold = CraftItemStack.asBukkitCopy(nmsGold);
+
+        ItemStack moveSetting = null;
+        if (guardMob.getMovementSetting() == GuardMob.MovementSetting.STAY_AT_SPAWN){
+            moveSetting = new ItemStack(Material.RED_BED);
+            ItemMeta moveSettingMeta = moveSetting.getItemMeta();
+            moveSettingMeta.setDisplayName(ChatColor.DARK_RED + "Stay At Spawn");
+            moveSetting.setItemMeta(moveSettingMeta);
+        }
+        switch (guardMob.getMovementSetting()){
+            case STAY_AT_SPAWN -> {
+                moveSetting = new ItemStack(Material.RED_BED);
+                ItemMeta moveSettingMeta = moveSetting.getItemMeta();
+                moveSettingMeta.setDisplayName(ChatColor.DARK_RED + "Stay At Spawn");
+                moveSetting.setItemMeta(moveSettingMeta);}
+            case FOLLOW -> {
+                moveSetting = new ItemStack(Material.LEAD);
+                ItemMeta moveSettingMeta = moveSetting.getItemMeta();
+                moveSettingMeta.setDisplayName(ChatColor.GOLD + "Follow");
+                List<String> lore = new ArrayList<>();
+                lore.add(ChatColor.GOLD + "Following " + guardMob.getFollowing().getDisplayName());
+                moveSettingMeta.setLore(lore);
+
+                moveSetting.setItemMeta(moveSettingMeta);
+            }
+        }
+
+        if (moveSetting != null){
+            inventory.setItem(4, moveSetting);
+        }
 
         if (guardMob.getTier() < 5){
             inventory.setItem(5, gold);

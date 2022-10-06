@@ -54,5 +54,17 @@ public class InventoryClickListener implements Listener {
             player.sendMessage(ChatColor.DARK_GREEN + guardMob.getEntityType().name() + " Upgraded");
             player.closeInventory();
         }
+
+        if (itemStack.getItemMeta().getDisplayName().equalsIgnoreCase(ChatColor.DARK_RED + "Stay At Spawn")){
+            guardMob.setMovementSetting(GuardMob.MovementSetting.FOLLOW);
+            guardMob.setFollowing(player);
+            Util.prepareInventory(guardMob);
+        }
+
+        if (itemStack.getItemMeta().getDisplayName().equalsIgnoreCase(ChatColor.GOLD + "Follow")){
+            guardMob.setMovementSetting(GuardMob.MovementSetting.STAY_AT_SPAWN);
+            guardMob.setFollowing(null);
+            Util.prepareInventory(guardMob);
+        }
     }
 }

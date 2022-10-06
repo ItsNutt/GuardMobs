@@ -5,6 +5,7 @@ import me.itsnutt.guardmobs.Data.GuardMobProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
 public interface GuardMob {
@@ -17,6 +18,12 @@ public interface GuardMob {
         MAGE,
         CONJURER,
         SAINT
+    }
+
+    enum MovementSetting{
+        STAY_AT_SPAWN,
+        FOLLOW,
+        WANDER
     }
 
     boolean getTargetNonTeamPlayers();
@@ -44,4 +51,12 @@ public interface GuardMob {
     Inventory getInventory();
 
     Entity getEntity();
+
+    MovementSetting getMovementSetting();
+
+    void setMovementSetting(MovementSetting movementSetting);
+
+    Player getFollowing();
+
+    void setFollowing(Player player);
 }
