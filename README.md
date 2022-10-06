@@ -5,3 +5,8 @@ In all seriousness, I will be engaging in cleaning and optimizing as soon as eve
 out the kinks with the Saint and I have yet to make everything configurable, so I have quite a bit to do still. Currently, every GuardMob, save for *maybe* 
 Archer and Swordsman, is as unbalanced as it can be, especially at tier 5. There's also the matter of making them controllable in-game. At the moment, all 
 GuardMobs will move back to the position in which they spawned, though I plan to make it so they can follow a player when something is toggled. 
+
+Current Dependencies:
+-WorldEdit-
+-WorldGuard-
+-Vault-
