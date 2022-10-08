@@ -29,38 +29,20 @@ public class CustomFollowGoal extends MoveToBlockGoal {
     @Override
     public boolean canContinueToUse(){
         GuardMob guardMob = (GuardMob) mob;
-        if (guardMob.getMovementSetting() != GuardMob.MovementSetting.FOLLOW)return false;
-        if (guardMob.getFollowing() == null) {
-            guardMob.setMovementSetting(GuardMob.MovementSetting.STAY_AT_SPAWN);
-            Util.prepareInventory(guardMob);
-            return false;
-        }
-
-        return true;
+        return isValidMoveSetting(guardMob);
     }
 
     @Override
     public boolean canUse(){
         super.canUse();
         if (!(mob instanceof GuardMob guardMob))return false;
-        if (guardMob.getMovementSetting() != GuardMob.MovementSetting.FOLLOW)return false;
-        if (guardMob.getFollowing() == null){
-            guardMob.setMovementSetting(GuardMob.MovementSetting.STAY_AT_SPAWN);
-            Util.prepareInventory(guardMob);
-            return false;
-        }
-        return true;
+        return isValidMoveSetting(guardMob);
     }
 
     @Override
     protected boolean findNearestBlock(){
         if (!(mob instanceof GuardMob guardMob))return false;
-        if (guardMob.getMovementSetting() != GuardMob.MovementSetting.FOLLOW)return false;
-        if (guardMob.getFollowing() == null){
-            guardMob.setMovementSetting(GuardMob.MovementSetting.STAY_AT_SPAWN);
-            Util.prepareInventory(guardMob);
-            return false;
-        }
+        if (!isValidMoveSetting(guardMob))return false;
         Player player = ((CraftPlayer) guardMob.getFollowing()).getHandle();
         this.blockPos = player.getOnPos();
         return true;
@@ -69,15 +51,21 @@ public class CustomFollowGoal extends MoveToBlockGoal {
     @Override
     public void tick() {
         if (!(mob instanceof GuardMob guardMob))return;
-        if (guardMob.getMovementSetting() != GuardMob.MovementSetting.FOLLOW)return;
-        if (guardMob.getFollowing() == null){
-            guardMob.setMovementSetting(GuardMob.MovementSetting.STAY_AT_SPAWN);
-            Util.prepareInventory(guardMob);
-            return;
-        }
+        if (!isValidMoveSetting(guardMob))return;
+
         Player player = ((CraftPlayer) guardMob.getFollowing()).getHandle();
         this.blockPos = player.getOnPos();
         mob.getNavigation().moveTo(blockPos.getX(), blockPos.getY(), blockPos.getZ(), speedModifier);
         super.tick();
+    }
+
+    public boolean isValidMoveSetting(GuardMob guardMob){
+        if (guardMob.getMovementSetting() != GuardMob.MovementSetting.FOLLOW)return false;
+        if (guardMob.getFollowing() == null){
+            guardMob.setMovementSetting(GuardMob.MovementSetting.STAY_AT_SPAWN);
+            Util.prepareInventory(guardMob);
+            return false;
+        }
+        return true;
     }
 }
