@@ -186,7 +186,7 @@ public class Util {
         goldMeta.setDisplayName(ChatColor.GOLD + "Upgrade");
 
         List<String> goldLore = new ArrayList<>();
-        String price = GuardMobs.useConfig() ? String.valueOf(GuardMobs.getPriceConfig().getUpgradePrice(guardMob.getEntityType(), guardMob.getTier()+1)) : "1000";
+        String price = String.valueOf(GuardMobs.getStatConfig().getUpgradePrice(guardMob.getEntityType(), guardMob.getTier()+1));
         goldLore.add("$" + price);
         goldMeta.setLore(goldLore);
         gold.setItemMeta(goldMeta);
@@ -199,12 +199,6 @@ public class Util {
         gold = CraftItemStack.asBukkitCopy(nmsGold);
 
         ItemStack moveSetting = null;
-        if (guardMob.getMovementSetting() == GuardMob.MovementSetting.STAY_AT_SPAWN){
-            moveSetting = new ItemStack(Material.RED_BED);
-            ItemMeta moveSettingMeta = moveSetting.getItemMeta();
-            moveSettingMeta.setDisplayName(ChatColor.DARK_RED + "Stay At Spawn");
-            moveSetting.setItemMeta(moveSettingMeta);
-        }
         switch (guardMob.getMovementSetting()){
             case STAY_AT_SPAWN -> {
                 moveSetting = new ItemStack(Material.RED_BED);

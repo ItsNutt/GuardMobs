@@ -2,7 +2,7 @@ package me.itsnutt.guardmobs;
 
 import me.itsnutt.guardmobs.Command.GetSpawnerItem;
 import me.itsnutt.guardmobs.Command.GetSpawnerItemTabCompleter;
-import me.itsnutt.guardmobs.Data.PriceConfiguration;
+import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Listeners.ChunkLoadListener;
 import me.itsnutt.guardmobs.Listeners.InventoryClickListener;
 import me.itsnutt.guardmobs.Listeners.ItemListener;
@@ -38,10 +38,10 @@ public final class GuardMobs extends JavaPlugin {
         return useConfig;
     }
 
-    private static PriceConfiguration priceConfig;
+    private static StatConfiguration statConfig;
 
-    public static PriceConfiguration getPriceConfig(){
-        return priceConfig;
+    public static StatConfiguration getStatConfig(){
+        return statConfig;
     }
 
     @Override
@@ -66,13 +66,9 @@ public final class GuardMobs extends JavaPlugin {
             return;
         }
 
-        priceConfig = new PriceConfiguration(config);
+        statConfig = new StatConfiguration(config);
         saveConfig();
-
-        useConfig = config.getBoolean("useConfig");
-        if (useConfig()){
-            priceConfig.initPrices();
-        }
+        statConfig.initStatConfig();
     }
 
     private boolean setupEconomy() {

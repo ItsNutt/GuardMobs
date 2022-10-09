@@ -2,10 +2,12 @@ package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
+import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
 import me.itsnutt.guardmobs.Goals.CustomMeleeAttackGoal;
 import me.itsnutt.guardmobs.Goals.CustomMoveToSpawnGoal;
 import me.itsnutt.guardmobs.Goals.CustomTargetingGoal;
+import me.itsnutt.guardmobs.GuardMobs;
 import me.itsnutt.guardmobs.Util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -73,10 +75,11 @@ public class Titan extends IronGolem implements GuardMob, InventoryHolder {
         this.persist = true;
         this.setPersistenceRequired();
 
-        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(100+(tier*15));
-        this.setHealth(100+(tier*15));
+        StatConfiguration stats = GuardMobs.getStatConfig();
+        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(stats.getConfigHealth(customEntityType, tier));
+        this.setHealth(getMaxHealth());
 
-        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue((tier*2) + 15);
+        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(stats.getConfigDamage(customEntityType, tier));
 
         this.setCanPickUpLoot(false);
 

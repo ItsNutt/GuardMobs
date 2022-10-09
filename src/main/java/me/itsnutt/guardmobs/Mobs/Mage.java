@@ -2,9 +2,11 @@ package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
+import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
 import me.itsnutt.guardmobs.Goals.CustomMoveToSpawnGoal;
 import me.itsnutt.guardmobs.Goals.CustomTargetingGoal;
+import me.itsnutt.guardmobs.GuardMobs;
 import me.itsnutt.guardmobs.Util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -84,10 +86,12 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
 
         persist = true;
         setPersistenceRequired();
-        ((org.bukkit.entity.LivingEntity) getBukkitEntity()).getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(26+(tier*4));
-        setHealth(26+(tier*4));
 
-        ((org.bukkit.entity.LivingEntity) getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(0);
+        StatConfiguration stats = GuardMobs.getStatConfig();
+        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(stats.getConfigHealth(customEntityType, tier));
+        this.setHealth(getMaxHealth());
+
+        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(stats.getConfigDamage(customEntityType, tier));
 
         ItemStack potion = new ItemStack(Material.POTION);
         ItemMeta potionMeta = potion.getItemMeta();

@@ -2,9 +2,11 @@ package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
+import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
 import me.itsnutt.guardmobs.Goals.CustomMoveToSpawnGoal;
 import me.itsnutt.guardmobs.Goals.CustomTargetingGoal;
+import me.itsnutt.guardmobs.GuardMobs;
 import me.itsnutt.guardmobs.Util.Util;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -85,10 +87,11 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
         this.persist = true;
         this.setPersistenceRequired();
 
-        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(26+(tier*4));
-        this.setHealth(26+(tier*4));
+        StatConfiguration stats = GuardMobs.getStatConfig();
+        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(stats.getConfigHealth(customEntityType, tier));
+        this.setHealth(getMaxHealth());
 
-        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(6+tier);
+        ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(stats.getConfigDamage(customEntityType, tier));
 
         this.setCanPickUpLoot(false);
 
