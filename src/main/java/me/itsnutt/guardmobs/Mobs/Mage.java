@@ -1,6 +1,7 @@
 package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import me.itsnutt.guardmobs.Data.GuardMobData;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
 import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
@@ -35,6 +36,7 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityTargetEvent;
@@ -47,7 +49,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class Mage extends Witch implements GuardMob, InventoryHolder {
+public class Mage extends Witch implements GuardMob, InventoryHolder, Armorable {
 
     private final boolean targetNonTeamPlayers;
     private final boolean targetHostileMobs;
@@ -58,6 +60,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
     private Inventory inventory;
     private MovementSetting movementSetting = MovementSetting.STAY_AT_SPAWN;
     private org.bukkit.entity.Player following = null;
+    private final UUID guardMobID;
 
     /*
      * The Concept of 'Tiers' is as follows:
@@ -69,7 +72,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
      * -Diminishing returns is the name of the game, though this is not true for health and damage (as they scale linearly)
      */
 
-    public Mage(Location spawnLocation, String regionID, Integer tier){
+    public Mage(Location spawnLocation, String regionID, Integer tier, UUID guardMobID){
         super(EntityType.WITCH, ((CraftWorld) spawnLocation.getWorld()).getHandle());
         int tempTier;
 
@@ -82,7 +85,10 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
             tempTier = 5;
         }
         this.tier = tempTier;
-        setUUID(UUID.randomUUID());
+
+        this.guardMobID = guardMobID==null ? UUID.randomUUID() : guardMobID;
+
+        this.setUUID(UUID.randomUUID());
 
         persist = true;
         setPersistenceRequired();
@@ -107,7 +113,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
         setCustomName(Component.literal("Mage " + "lvl" + tier).setStyle(style));
         setCustomNameVisible(true);
 
-        inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Mage Menu");
+        inventory = GuardMobData.getGuardMobInventory(this);
         inventory = Util.prepareInventory(this);
 
         goalSelector.removeAllGoals();
@@ -133,30 +139,38 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
             double d1 = entityliving.getEyeY() - 1.100000023841858D - getY();
             double d2 = entityliving.getZ() + vec3d.z - getZ();
             double d3 = Math.sqrt(d0 * d0 + d2 * d2);
-            Potion potionregistry = Potions.HARMING;
-            if (tier == 5){
-                potionregistry = Potions.STRONG_HARMING;
-            }
+            Potion potionregistry = tier==5 ? Potions.STRONG_HARMING : Potions.HARMING;
 
             if (d3 >= 8.0D && !entityliving.hasEffect(MobEffects.MOVEMENT_SLOWDOWN) && random.nextFloat() < 0.50F) {
-                potionregistry = Potions.SLOWNESS;
-                if (tier == 5){
-                    potionregistry = Potions.STRONG_SLOWNESS;
-                }
+                potionregistry = tier==5 ? Potions.STRONG_SLOWNESS : Potions.SLOWNESS;
             } else if (entityliving.getHealth() >= 8.0F && !entityliving.hasEffect(MobEffects.POISON) && entityliving.getMobType() != MobType.UNDEAD
             && entityliving.getMobType() != MobType.ARTHROPOD) {
-                potionregistry = Potions.POISON;
-                if (tier == 5){
-                    potionregistry = Potions.STRONG_POISON;
-                }
+                potionregistry = tier==5 ? Potions.STRONG_POISON : Potions.POISON;
             } else if (d3 <= 3.0D && !entityliving.hasEffect(MobEffects.WEAKNESS) && random.nextFloat() < 0.25F) {
                 potionregistry = Potions.WEAKNESS;
             } else if (entityliving.getMobType() == MobType.UNDEAD){
-                potionregistry = Potions.HEALING;
-                if (tier == 5){
-                    potionregistry = Potions.STRONG_HEALING;
-                }
+                potionregistry = tier==5 ? Potions.STRONG_HEALING : Potions.HEALING;
             }
+
+            org.bukkit.entity.LivingEntity entityLivingBukkit = (org.bukkit.entity.LivingEntity) entityliving.getBukkitEntity();
+            boolean doAttack = true;
+            HashSet<Entity> surrounding = new HashSet<>(entityLivingBukkit.getWorld().getNearbyEntities(entityLivingBukkit.getLocation(), 3.5, 3.5, 3.5));
+            surrounding.removeIf(entity -> !(entity instanceof org.bukkit.entity.LivingEntity) && entity == this.getBukkitEntity());
+            for (Entity entity : surrounding){
+                if (!(entity instanceof org.bukkit.entity.LivingEntity livingEntitySurrounding))continue;
+                LivingEntity livingEntity = ((CraftLivingEntity) livingEntitySurrounding).getHandle();
+                if ((Util.isAlly(livingEntity.getBukkitEntity(), regionID) && livingEntity.getMobType() != MobType.UNDEAD)){
+                    doAttack = false;
+                    break;
+                }
+                if ((!Util.isAlly(livingEntity.getBukkitEntity(), regionID) && livingEntity.getMobType() == MobType.UNDEAD)){
+                    doAttack = false;
+                    break;
+                }
+
+            }
+
+            if (!doAttack)return;
 
             ThrownPotion entitypotion = new ThrownPotion(level, this);
             entitypotion.setItem(PotionUtils.setPotion(new net.minecraft.world.item.ItemStack(Items.SPLASH_POTION), potionregistry));
@@ -261,7 +275,7 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
 
     @Override
     public GuardMobProfile getProfile() {
-        return new GuardMobProfile(customEntityType, spawnLocation, regionID, tier);
+        return new GuardMobProfile(customEntityType, spawnLocation, regionID, tier, guardMobID);
     }
 
     private int reevaluationTickCount = 0;
@@ -327,5 +341,101 @@ public class Mage extends Witch implements GuardMob, InventoryHolder {
     public void setFollowing(org.bukkit.entity.Player player) {
         following = player;
         Util.prepareInventory(this);
+    }
+
+    @Override
+    public UUID getGuardMobID(){
+        return guardMobID;
+    }
+
+    @Override
+    public void refreshInventory() {
+        inventory = Util.prepareInventory(this);
+        refreshArmor();
+        GuardMobData.saveGuardMobInventory(this);
+    }
+
+    @Override
+    public void refreshArmor() {
+        ItemStack helmet;
+        if (inventory.getItem(0) != null){
+            helmet = Util.isHelmet(inventory.getItem(0)) ? inventory.getItem(0) : new ItemStack(Material.JACK_O_LANTERN);
+        } else {
+            helmet = null;
+        }
+        this.setItemSlot(EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(helmet));
+
+        ItemStack chestplate;
+        if (inventory.getItem(9) != null){
+            chestplate = Util.isChestPlate(inventory.getItem(9)) ? inventory.getItem(9) : null;
+        } else {
+            chestplate = null;
+        }
+        this.setItemSlot(EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(chestplate));
+
+        ItemStack legs;
+        if (inventory.getItem(18) != null){
+            legs = Util.isLeggings(inventory.getItem(18)) ? inventory.getItem(18) : null;
+        } else {
+            legs = null;
+        }
+        this.setItemSlot(EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(legs));
+
+        ItemStack boots;
+        if (inventory.getItem(27) != null){
+            boots = Util.isBoots(inventory.getItem(27)) ? inventory.getItem(27) : null;
+        } else {
+            boots = null;
+        }
+        this.setItemSlot(EquipmentSlot.FEET, CraftItemStack.asNMSCopy(boots));
+    }
+
+    @Override
+    public ItemStack getHead() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.HEAD));
+    }
+
+    @Override
+    public ItemStack getChest() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.CHEST));
+    }
+
+    @Override
+    public ItemStack getLegs() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.LEGS));
+    }
+
+    @Override
+    public ItemStack getFeet() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.FEET));
+    }
+
+    @Override
+    public boolean addArmorPiece(ItemStack itemStack) {
+        EquipmentSlot equipmentSlot;
+        int slot;
+        if (Util.isHelmet(itemStack)) {
+            equipmentSlot = EquipmentSlot.HEAD;
+            slot = 0;
+        } else if (Util.isChestPlate(itemStack)) {
+            equipmentSlot = EquipmentSlot.CHEST;
+            slot = 9;
+        } else if (Util.isLeggings(itemStack)) {
+            equipmentSlot = EquipmentSlot.LEGS;
+            slot = 18;
+        } else if (Util.isBoots(itemStack)) {
+            equipmentSlot = EquipmentSlot.FEET;
+            slot = 27;
+        } else {
+            return false;
+        }
+        setItemSlot(equipmentSlot, CraftItemStack.asNMSCopy(itemStack));
+        inventory.setItem(slot, itemStack);
+        return true;
+    }
+
+    @Override
+    public ItemStack get(EquipmentSlot equipmentSlot) {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(equipmentSlot));
     }
 }

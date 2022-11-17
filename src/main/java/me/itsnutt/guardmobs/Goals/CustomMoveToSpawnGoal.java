@@ -20,6 +20,12 @@ public class CustomMoveToSpawnGoal extends MoveToBlockGoal {
     }
 
     @Override
+    public boolean canContinueToUse(){
+        if (!(mob instanceof GuardMob guardMob))return false;
+        return guardMob.getMovementSetting() == GuardMob.MovementSetting.STAY_AT_SPAWN;
+    }
+
+    @Override
     public boolean canUse(){
         if (!(mob instanceof GuardMob guardMob))return false;
         if (guardMob.getMovementSetting() != GuardMob.MovementSetting.STAY_AT_SPAWN)return false;

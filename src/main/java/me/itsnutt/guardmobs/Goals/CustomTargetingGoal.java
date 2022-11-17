@@ -5,6 +5,7 @@ import me.itsnutt.guardmobs.Util.Util;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import org.bukkit.GameMode;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
@@ -42,6 +43,9 @@ public class CustomTargetingGoal extends TargetGoal {
                 if (mob.getLastHurtByMob().getBukkitEntity() instanceof Player player){
                     if (Util.isRegionMember(player, ((GuardMob) mob).getRegionID())){
                         mob.setLastHurtByMob(null);
+                    } else {
+                        mob.setTarget(mob.lastHurtByMob, EntityTargetEvent.TargetReason.CUSTOM, false);
+                        return;
                     }
                 }else if (Util.hasSameRegionID(mob.lastHurtByMob.getBukkitEntity(), ((GuardMob) mob).getRegionID())){
                     mob.setLastHurtByMob(null);
@@ -64,6 +68,7 @@ public class CustomTargetingGoal extends TargetGoal {
         potentialTargets.removeIf(entity -> !mob.hasLineOfSight(((CraftEntity) entity).getHandle()));
         //Remove Self
         potentialTargets.removeIf(entity -> entity == mob.getBukkitEntity());
+        potentialTargets.removeIf(entity -> entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE);
 
         //No Potential Targets == No Targeting
         if (potentialTargets.isEmpty()){

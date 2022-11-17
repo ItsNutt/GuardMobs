@@ -118,7 +118,7 @@
             <artifactId>worldguard-bukkit</artifactId>
             <version>7.0.8</version>
             <scope>system</scope>
-            <systemPath>C:\Users\Admin\Desktop\Spigot\BuildTools\1.19 Test Server\plugins\worldguard-bukkit-7.0.8-beta-01-dist.jar</systemPath>
+            <systemPath>C:\Users\gamer\Desktop\Coding Stuff\Spigot\BuildTools\1.19 Test Server\plugins\worldguard-bukkit-7.0.8-beta-01-dist.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>

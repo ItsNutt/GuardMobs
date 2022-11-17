@@ -26,7 +26,7 @@ public class ChunkLoadListener implements Listener {
                 continue;
             }
 
-            GuardMobProfile profile = GuardMobProfile.deserialize(container.get(Util.getProfileKey(), PersistentDataType.STRING));
+            GuardMobProfile profile = GuardMobProfile.deserialize(container.get(Util.getProfileKey(), PersistentDataType.STRING), container.get(Util.getUuidKey(), PersistentDataType.BYTE_ARRAY));
             if (profile == null){
                 continue;
             }

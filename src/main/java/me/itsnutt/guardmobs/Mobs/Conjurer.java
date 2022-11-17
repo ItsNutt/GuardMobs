@@ -1,6 +1,7 @@
 package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import me.itsnutt.guardmobs.Data.GuardMobData;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
 import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
@@ -18,6 +19,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
@@ -25,29 +27,32 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Evoker;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.EvokerFangs;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
+public class Conjurer extends Evoker implements GuardMob, InventoryHolder, Armorable {
 
     private final boolean targetNonTeamPlayers;
     private final boolean targetHostileMobs;
@@ -58,6 +63,7 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
     private Inventory inventory;
     private MovementSetting movementSetting = MovementSetting.STAY_AT_SPAWN;
     private org.bukkit.entity.Player following = null;
+    private final UUID guardMobID;
 
     /*
      * The Concept of 'Tiers' is as follows:
@@ -69,7 +75,7 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
      * -Diminishing returns is the name of the game, though this is not true for health and damage (as they scale linearly)
      */
 
-    public Conjurer(Location spawnLocation, String regionID, Integer tier){
+    public Conjurer(Location spawnLocation, String regionID, Integer tier, UUID guardMobID){
         super(EntityType.EVOKER, ((CraftWorld) spawnLocation.getWorld()).getHandle());
         int tempTier;
 
@@ -82,6 +88,9 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
             tempTier = 5;
         }
         this.tier = tempTier;
+
+        this.guardMobID = guardMobID==null ? UUID.randomUUID() : guardMobID;
+
         this.setUUID(UUID.randomUUID());
 
         this.persist = true;
@@ -100,7 +109,7 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Conjurer " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Conjurer Menu");
+        inventory = GuardMobData.getGuardMobInventory(this);
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();
@@ -123,8 +132,87 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
     }
 
     @Override
-    public Inventory getInventory() {
-        return inventory;
+    public void refreshArmor() {
+        ItemStack helmet;
+        if (inventory.getItem(0) != null){
+            helmet = Util.isHelmet(inventory.getItem(0)) ? inventory.getItem(0) : new ItemStack(Material.JACK_O_LANTERN);
+        } else {
+            helmet = null;
+        }
+        this.setItemSlot(EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(helmet));
+
+        ItemStack chestplate;
+        if (inventory.getItem(9) != null){
+            chestplate = Util.isChestPlate(inventory.getItem(9)) ? inventory.getItem(9) : null;
+        } else {
+            chestplate = null;
+        }
+        this.setItemSlot(EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(chestplate));
+
+        ItemStack legs;
+        if (inventory.getItem(18) != null){
+            legs = Util.isLeggings(inventory.getItem(18)) ? inventory.getItem(18) : null;
+        } else {
+            legs = null;
+        }
+        this.setItemSlot(EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(legs));
+
+        ItemStack boots;
+        if (inventory.getItem(27) != null){
+            boots = Util.isBoots(inventory.getItem(27)) ? inventory.getItem(27) : null;
+        } else {
+            boots = null;
+        }
+        this.setItemSlot(EquipmentSlot.FEET, CraftItemStack.asNMSCopy(boots));
+    }
+
+    @Override
+    public ItemStack getHead() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.HEAD));
+    }
+
+    @Override
+    public ItemStack getChest() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.CHEST));
+    }
+
+    @Override
+    public ItemStack getLegs() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.LEGS));
+    }
+
+    @Override
+    public ItemStack getFeet() {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(EquipmentSlot.FEET));
+    }
+
+    @Override
+    public boolean addArmorPiece(ItemStack itemStack) {
+        EquipmentSlot equipmentSlot;
+        int slot;
+        if (Util.isHelmet(itemStack)) {
+            equipmentSlot = EquipmentSlot.HEAD;
+            slot = 0;
+        } else if (Util.isChestPlate(itemStack)) {
+            equipmentSlot = EquipmentSlot.CHEST;
+            slot = 9;
+        } else if (Util.isLeggings(itemStack)) {
+            equipmentSlot = EquipmentSlot.LEGS;
+            slot = 18;
+        } else if (Util.isBoots(itemStack)) {
+            equipmentSlot = EquipmentSlot.FEET;
+            slot = 27;
+        } else {
+            return false;
+        }
+        setItemSlot(equipmentSlot, CraftItemStack.asNMSCopy(itemStack));
+        inventory.setItem(slot, itemStack);
+        return true;
+    }
+
+    @Override
+    public ItemStack get(EquipmentSlot equipmentSlot) {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(equipmentSlot));
     }
 
     private class ConjurerCastingSpellGoal extends SpellcasterCastingSpellGoal {
@@ -359,7 +447,12 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
 
     @Override
     public GuardMobProfile getProfile() {
-        return new GuardMobProfile(customEntityType, spawnLocation, regionID, tier);
+        return new GuardMobProfile(customEntityType, spawnLocation, regionID, tier, guardMobID);
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return inventory;
     }
 
     private int reevaluationTickCount = 0;
@@ -420,5 +513,17 @@ public class Conjurer extends Evoker implements GuardMob, InventoryHolder {
     public void setFollowing(org.bukkit.entity.Player player) {
         following = player;
         Util.prepareInventory(this);
+    }
+
+    @Override
+    public UUID getGuardMobID(){
+        return guardMobID;
+    }
+
+    @Override
+    public void refreshInventory() {
+        inventory = Util.prepareInventory(this);
+        refreshArmor();
+        GuardMobData.saveGuardMobInventory(this);
     }
 }

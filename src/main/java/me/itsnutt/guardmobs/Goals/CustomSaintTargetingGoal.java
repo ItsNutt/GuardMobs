@@ -7,8 +7,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobType;
 import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import org.bukkit.GameMode;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftEntity;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import java.util.HashSet;
@@ -58,6 +60,8 @@ public class CustomSaintTargetingGoal extends TargetGoal {
         //Remove Self
         potentialTargets.removeIf(entity -> entity == mob.getBukkitEntity());
 
+        potentialTargets.removeIf(entity -> entity instanceof Player player && player.getGameMode() == GameMode.CREATIVE);
+
         //No Potential Targets == No Targeting
         if (potentialTargets.isEmpty()){
             return;
@@ -82,58 +86,6 @@ public class CustomSaintTargetingGoal extends TargetGoal {
                 }
             }
         }
-
-        /*
-        //Prioritize Targeting Friendly Players (For Buffing) Over Non_Friendly Players
-        for (Entity entity : potentialTargets){
-            if (entity instanceof Player player){
-                if (Util.isRegionMember(player, ((Saint) mob).getRegionID())){
-                    if (!Util.hasAllSaintBuffs(player, ((Saint) mob).getTier())){
-                        mob.setTarget(((CraftPlayer) player).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                        return;
-                    }
-                }
-            }
-        }
-
-        //Don't Need to Run Through Entities We've Already Checked Aren't Potential Targets
-        potentialTargets.removeIf(entity -> entity instanceof Player);
-
-        //Prioritize Friendly GuardMobs Over Hostile Mobs
-        for (Entity entity : potentialTargets){
-            if (entity instanceof GuardMob){
-                LivingEntity livingEntity = (LivingEntity) ((CraftEntity) entity).getHandle();
-                if (Util.hasSameRegionID(entity, ((Saint) mob).getRegionID())){
-                    if (livingEntity.getMobType() == MobType.UNDEAD){
-                        continue;
-                    }
-                    if (!Util.hasSaintBuff((org.bukkit.entity.LivingEntity) livingEntity.getBukkitEntity(), 1)){
-                        mob.setTarget((LivingEntity) ((CraftEntity) entity).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                        return;
-                    }
-                }
-            }
-        }
-
-        potentialTargets.removeIf(entity -> entity instanceof GuardMob);
-
-        //Target Hostile Mobs
-        if (((GuardMob) mob).getTargetHostileMobs()){
-            for (Entity entity : potentialTargets){
-                if (entity instanceof Monster){
-                    if (((LivingEntity)((CraftEntity) entity).getHandle()).getMobType() != MobType.UNDEAD){
-                        continue;
-                    }
-                    if (Util.hasSameRegionID(entity, ((GuardMob) mob).getRegionID())){
-                        continue;
-                    }
-                    mob.setTarget((LivingEntity) ((CraftEntity) entity).getHandle(), EntityTargetEvent.TargetReason.CUSTOM, false);
-                    return;
-                }
-            }
-        }
-
-         */
 
     }
 }

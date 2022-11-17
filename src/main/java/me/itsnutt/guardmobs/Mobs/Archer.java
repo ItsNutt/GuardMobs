@@ -1,6 +1,7 @@
 package me.itsnutt.guardmobs.Mobs;
 
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import me.itsnutt.guardmobs.Data.GuardMobData;
 import me.itsnutt.guardmobs.Data.GuardMobProfile;
 import me.itsnutt.guardmobs.Data.StatConfiguration;
 import me.itsnutt.guardmobs.Goals.CustomFollowGoal;
@@ -27,8 +28,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Items;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -48,7 +47,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class Archer extends Skeleton implements GuardMob, InventoryHolder {
+public class Archer extends Skeleton implements GuardMob, InventoryHolder, Armorable {
 
     private final boolean targetNonTeamPlayers;
     private final boolean targetHostileMobs;
@@ -59,6 +58,7 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
     private Inventory inventory;
     private MovementSetting movementSetting = MovementSetting.STAY_AT_SPAWN;
     private org.bukkit.entity.Player following = null;
+    private final UUID guardMobID;
 
     /*
     * The Concept of 'Tiers' is as follows:
@@ -70,7 +70,7 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
     * -Diminishing returns is the name of the game, though this is not true for health and damage (as they scale linearly)
      */
 
-    public Archer(Location spawnLocation, String regionID, Integer tier){
+    public Archer(Location spawnLocation, String regionID, Integer tier, UUID guardMobID){
         super(EntityType.SKELETON, ((CraftWorld) spawnLocation.getWorld()).getHandle());
         int tempTier;
 
@@ -83,6 +83,9 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
             tempTier = 5;
         }
         this.tier = tempTier;
+
+        this.guardMobID = guardMobID==null ? UUID.randomUUID() : guardMobID;
+
         this.setUUID(UUID.randomUUID());
 
         this.persist = true;
@@ -93,8 +96,6 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
         this.setHealth(getMaxHealth());
 
         ((org.bukkit.entity.LivingEntity) this.getBukkitEntity()).getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(stats.getConfigDamage(customEntityType, tier));
-
-        this.setItemSlot(EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(new ItemStack(Material.JACK_O_LANTERN)));
 
         ItemStack bow = new ItemStack(Material.BOW);
         ItemMeta bowMeta = bow.getItemMeta();
@@ -109,7 +110,7 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
         this.setCustomName(Component.literal("Archer " + "lvl" + tier).setStyle(style));
         this.setCustomNameVisible(true);
 
-        this.inventory = Bukkit.createInventory(this, 9, ChatColor.BLACK + "Archer Menu");
+        inventory = GuardMobData.getGuardMobInventory(this);
         inventory = Util.prepareInventory(this);
 
         this.goalSelector.removeAllGoals();
@@ -131,6 +132,9 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
 
     @Override
     public void performRangedAttack(LivingEntity entityliving, float f) {
+        if (getTarget() == null)return;
+        if (!Util.hasEntityLineOfSight(this, getTarget().getBukkitEntity()))return;
+
         net.minecraft.world.item.ItemStack itemstack = this.getProjectile(this.getItemInHand(ProjectileUtil.getWeaponHoldingHand(this, Items.BOW)));
         AbstractArrow entityarrow = this.getArrow(itemstack, f);
         double d0 = entityliving.getX() - this.getX();
@@ -207,8 +211,15 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
         if (this.getLocation().getWorld() != null){
             potentialTargets = new HashSet<>(this.getLocation().getWorld().getNearbyEntities((this).getLocation(), 16 + tier, 8, 16 + tier));
             potentialTargets.removeIf(entity -> !(((CraftEntity) entity).getHandle() instanceof Monster) && !(((CraftEntity) entity).getHandle() instanceof Player));
+            //potentialTargets.removeIf(entity -> !Util.hasEntityLineOfSight(this, entity));
         }else {return;}
         Entity target = this.getTarget().getBukkitEntity();
+        /*
+        if (!Util.hasEntityLineOfSight(this, target)){
+            target = null;
+            return;
+        }
+        */
 
         if (this.getLastHurtByMob() != null){
             if (!Util.isAlly(this.getLastHurtByMob().getBukkitEntity(), this.regionID)){
@@ -246,7 +257,7 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
 
     @Override
     public GuardMobProfile getProfile() {
-        return new GuardMobProfile(customEntityType, spawnLocation, regionID, tier);
+        return new GuardMobProfile(customEntityType, spawnLocation, regionID, tier, guardMobID);
     }
 
     private int reevaluationTickCount = 0;
@@ -313,4 +324,102 @@ public class Archer extends Skeleton implements GuardMob, InventoryHolder {
         following = player;
         Util.prepareInventory(this);
     }
+
+    @Override
+    public UUID getGuardMobID(){
+        return guardMobID;
+    }
+
+    @Override
+    public void refreshInventory() {
+        inventory = Util.prepareInventory(this);
+        refreshArmor();
+        GuardMobData.saveGuardMobInventory(this);
+    }
+
+    @Override
+    public void refreshArmor() {
+        ItemStack helmet;
+        if (inventory.getItem(0) != null){
+            helmet = Util.isHelmet(inventory.getItem(0)) ? inventory.getItem(0) : new ItemStack(Material.GLASS);
+        } else {
+            helmet = new ItemStack(Material.GLASS);
+        }
+        this.setItemSlot(EquipmentSlot.HEAD, CraftItemStack.asNMSCopy(helmet));
+
+        ItemStack chestplate;
+        if (inventory.getItem(9) != null){
+            chestplate = Util.isChestPlate(inventory.getItem(9)) ? inventory.getItem(9) : null;
+        } else {
+            chestplate = null;
+        }
+        this.setItemSlot(EquipmentSlot.CHEST, CraftItemStack.asNMSCopy(chestplate));
+
+        ItemStack legs;
+        if (inventory.getItem(18) != null){
+            legs = Util.isLeggings(inventory.getItem(18)) ? inventory.getItem(18) : null;
+        } else {
+            legs = null;
+        }
+        this.setItemSlot(EquipmentSlot.LEGS, CraftItemStack.asNMSCopy(legs));
+
+        ItemStack boots;
+        if (inventory.getItem(27) != null){
+            boots = Util.isBoots(inventory.getItem(27)) ? inventory.getItem(27) : null;
+        } else {
+            boots = null;
+        }
+        this.setItemSlot(EquipmentSlot.FEET, CraftItemStack.asNMSCopy(boots));
+    }
+
+    @Override
+    public ItemStack getHead() {
+        return inventory.getItem(0);
+    }
+
+    @Override
+    public ItemStack getChest() {
+        return inventory.getItem(9);
+    }
+
+    @Override
+    public ItemStack getLegs() {
+        return inventory.getItem(18);
+    }
+
+    @Override
+    public ItemStack getFeet() {
+        return inventory.getItem(27);
+    }
+
+    @Override
+    public boolean addArmorPiece(ItemStack itemStack) {
+        EquipmentSlot equipmentSlot;
+        int slot;
+        if (Util.isHelmet(itemStack)) {
+            equipmentSlot = EquipmentSlot.HEAD;
+            slot = 0;
+        } else if (Util.isChestPlate(itemStack)) {
+            equipmentSlot = EquipmentSlot.CHEST;
+            slot = 9;
+        } else if (Util.isLeggings(itemStack)) {
+            equipmentSlot = EquipmentSlot.LEGS;
+            slot = 18;
+        } else if (Util.isBoots(itemStack)) {
+            equipmentSlot = EquipmentSlot.FEET;
+            slot = 27;
+        } else {
+            return false;
+        }
+        setItemSlot(equipmentSlot, CraftItemStack.asNMSCopy(itemStack));
+        inventory.setItem(slot, itemStack);
+        return true;
+    }
+
+    @Override
+    public ItemStack get(EquipmentSlot equipmentSlot) {
+        return CraftItemStack.asBukkitCopy(getItemBySlot(equipmentSlot));
+    }
+
+
 }

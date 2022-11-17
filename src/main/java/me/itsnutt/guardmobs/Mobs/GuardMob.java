@@ -8,6 +8,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
+import java.util.UUID;
+
 public interface GuardMob {
 
     enum CustomEntityType{
@@ -59,4 +61,10 @@ public interface GuardMob {
     Player getFollowing();
 
     void setFollowing(Player player);
+
+    UUID getGuardMobID();
+
+    void refreshInventory();
+
+
 }

@@ -1,6 +1,5 @@
 package me.itsnutt.guardmobs.Mobs;
 
-import me.itsnutt.guardmobs.Goals.CustomTargetingGoal;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
@@ -42,7 +41,7 @@ public class Summoned extends Vex {
         this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
 
         this.targetSelector.addGoal(2, new Summoned.SummonedCopyOwnerTargetGoal(this));
-        this.targetSelector.addGoal(3, new CustomTargetingGoal(this));
+        //this.targetSelector.addGoal(3, new CustomTargetingGoal(this));
 
 
     }

@@ -3,10 +3,8 @@ package me.itsnutt.guardmobs;
 import me.itsnutt.guardmobs.Command.GetSpawnerItem;
 import me.itsnutt.guardmobs.Command.GetSpawnerItemTabCompleter;
 import me.itsnutt.guardmobs.Data.StatConfiguration;
-import me.itsnutt.guardmobs.Listeners.ChunkLoadListener;
-import me.itsnutt.guardmobs.Listeners.InventoryClickListener;
-import me.itsnutt.guardmobs.Listeners.ItemListener;
-import me.itsnutt.guardmobs.Listeners.PlayerInteractEntityListener;
+import me.itsnutt.guardmobs.Listeners.*;
+import me.itsnutt.guardmobs.Util.Util;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -32,12 +30,6 @@ public final class GuardMobs extends JavaPlugin {
 
     private final Logger log = getLogger();
 
-    private static boolean useConfig;
-
-    public static boolean useConfig(){
-        return useConfig;
-    }
-
     private static StatConfiguration statConfig;
 
     public static StatConfiguration getStatConfig(){
@@ -54,6 +46,9 @@ public final class GuardMobs extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerInteractEntityListener(), this);
         getServer().getPluginManager().registerEvents(new ChunkLoadListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryClickListener(), this);
+        getServer().getPluginManager().registerEvents(new EntityDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new EntityDamageListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryCloseListener(), this);
 
         if (!setupEconomy() ) {
             RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
@@ -69,6 +64,8 @@ public final class GuardMobs extends JavaPlugin {
         statConfig = new StatConfiguration(config);
         saveConfig();
         statConfig.initStatConfig();
+
+        Util.initSpawnChunkGuardMobs().runTask(this);
     }
 
     private boolean setupEconomy() {
