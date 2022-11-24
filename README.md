@@ -7,3 +7,5 @@ Current Dependencies:
 -WorldEdit-
 -WorldGuard-
 -Vault-
+
+Note To Self: Spawn items and spawning in general needs rework to neatly fit revival tokens. Does not look pretty at the moment. 
